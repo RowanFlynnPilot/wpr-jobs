@@ -70,14 +70,19 @@ Syndication: `jobs-feed` serves the live board as RSS/JSON (newsletter).
 
 ```
 public/wpr-typewriter.png          WPR typewriter seal (shared w/ community-board)
+docs/embedding.md                  WordPress iframe snippet (auto-height, deep links)
 src/
   config.js            Supabase URL/anon key, price labels, POSTING_DAYS
   supabase.js          Client. Throws at load if config.js is unconfigured.
-  App.jsx              Hash router: #/ #/post #/success #/admin #/job/:id
+  App.jsx              Hash router: #/ #/post #/success #/admin #/job/:id;
+                       posts 'wpr-jobs-height' to the parent iframe; admin
+                       is code-split (lazy)
+  components/JobCard.jsx One card, two homes: board + form preview. Share
+                       links honor VITE_PUBLIC_URL (the WordPress page).
   lib/taxonomy.js      Categories + employment types (mirrored in submit-job)
   lib/format.js        Pay ranges, dates
-  views/Board.jsx      Public board (iframe-embedded), deep links, share
-  views/PostJob.jsx    Submission form (tier picker) → Stripe
+  views/Board.jsx      Public board (iframe-embedded), deep links, filters
+  views/PostJob.jsx    Submission form (tier picker, live preview) → Stripe
   views/Success.jsx    Post-checkout confirmation
   views/Admin.jsx      Login + review queue (edit-before-approve) / live / archive
 supabase/

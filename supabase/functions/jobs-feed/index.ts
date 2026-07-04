@@ -28,7 +28,13 @@ function env(name: string): string {
 
 const supabase = createClient(env("SUPABASE_URL"), env("SUPABASE_ANON_KEY"));
 
-const CORS = { "Access-Control-Allow-Origin": "*" };
+// Five-minute shared cache: feed readers and the newsletter builder don't
+// need to hit Postgres on every poll, and a new posting still appears
+// within minutes.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Cache-Control": "public, max-age=300",
+};
 
 function escapeXml(s: string): string {
   return s

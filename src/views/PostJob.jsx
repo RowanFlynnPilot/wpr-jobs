@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { supabase } from '../supabase.js'
 import { PRICE_LABEL, FEATURED_PRICE_LABEL, POSTING_DAYS } from '../config.js'
 import { CATEGORIES, EMPLOYMENT_TYPES } from '../lib/taxonomy.js'
+import JobCard from '../components/JobCard.jsx'
 
 const BLANK = {
   tier: 'standard',
@@ -200,6 +201,13 @@ export default function PostJob() {
               onChange={set('description')}
               placeholder="Responsibilities, requirements, schedule, benefits. Plain text — line breaks are preserved."
             />
+            <span className="char-count">
+              {form.description.trim().length < 40
+                ? `${form.description.trim().length} characters — ${
+                    40 - form.description.trim().length
+                  } more to go`
+                : `${form.description.trim().length.toLocaleString()} characters`}
+            </span>
           </label>
 
           <div className="field-group">
@@ -265,6 +273,37 @@ export default function PostJob() {
                 <input type="email" required value={form.contact_email} onChange={set('contact_email')} />
               </label>
             </div>
+          </div>
+
+          <div className="preview-block">
+            <div className="eyebrow eyebrow-left">
+              <span>How it will appear on the board</span>
+            </div>
+            <JobCard
+              preview
+              open
+              job={{
+                id: 'preview',
+                title: form.title.trim() || 'Job title',
+                company: form.company.trim() || 'Company name',
+                location: form.location.trim() || 'Wausau, WI',
+                employment_type: form.employment_type,
+                category: form.category || 'Category',
+                pay_min: form.pay_min === '' ? null : Number(form.pay_min),
+                pay_max: form.pay_max === '' ? null : Number(form.pay_max),
+                pay_period:
+                  form.pay_min === '' && form.pay_max === ''
+                    ? null
+                    : form.pay_period,
+                description:
+                  form.description.trim() ||
+                  'Your job description appears here.',
+                apply_url: null,
+                apply_email: null,
+                published_at: new Date().toISOString(),
+                featured: form.tier === 'featured',
+              }}
+            />
           </div>
 
           {error && <div className="notice notice-error">{error}</div>}

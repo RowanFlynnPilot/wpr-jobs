@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { PRICE_LABEL, POSTING_DAYS } from '../config.js'
-import { CATEGORIES, EMPLOYMENT_TYPES, typeLabel } from '../lib/taxonomy.js'
-import { formatPay, daysAgo } from '../lib/format.js'
+import { CATEGORIES, EMPLOYMENT_TYPES } from '../lib/taxonomy.js'
+import JobCard from '../components/JobCard.jsx'
 
 // The anon column grant is the contract: enumerate exactly what the public
 // may read. `select('*')` would fail loudly — by design. And note there is
@@ -57,6 +57,14 @@ export default function Board({ jobId = null }) {
       )
     })
   }, [jobs, search, category, type])
+
+  const filtering = search.trim() !== '' || category !== 'all' || type !== 'all'
+
+  function clearFilters() {
+    setSearch('')
+    setCategory('all')
+    setType('all')
+  }
 
   return (
     <div className="page">
@@ -125,7 +133,11 @@ export default function Board({ jobId = null }) {
         </div>
       )}
 
-      {!error && jobs === null && <div className="notice">Loading openings&hellip;</div>}
+      {!error && jobs === null && (
+        <div className="notice notice-loading">
+          Setting type<span className="cursor" aria-hidden="true" />
+        </div>
+      )}
 
       {jobs !== null && !error && (
         <>
@@ -137,9 +149,23 @@ export default function Board({ jobId = null }) {
 
           {filtered.length === 0 && (
             <div className="notice">
-              {jobs.length === 0
-                ? 'No open positions right now — check back soon.'
-                : 'No openings match those filters.'}
+              {jobs.length === 0 ? (
+                <>
+                  <p>The board is fresh out of openings.</p>
+                  <a className="btn btn-cta" href="#/post">
+                    Be the first &mdash; post a job
+                  </a>
+                </>
+              ) : (
+                <>
+                  <p>No openings match those filters.</p>
+                  {filtering && (
+                    <button className="btn btn-quiet" onClick={clearFilters}>
+                      Clear filters
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
 
@@ -196,79 +222,5 @@ export default function Board({ jobId = null }) {
         </p>
       </footer>
     </div>
-  )
-}
-
-function JobCard({ job, open, onToggle }) {
-  const pay = formatPay(job.pay_min, job.pay_max, job.pay_period)
-  const applyHref = job.apply_url
-    ? job.apply_url
-    : `mailto:${job.apply_email}?subject=${encodeURIComponent(
-        `Application: ${job.title}`,
-      )}`
-
-  return (
-    <article
-      id={`job-${job.id}`}
-      className={`job-card${open ? ' open' : ''}${job.featured ? ' featured' : ''}`}
-    >
-      <button className="job-summary" onClick={onToggle} aria-expanded={open}>
-        <div className="job-main">
-          <h3 className="job-title">{job.title}</h3>
-          <div className="job-company">
-            {job.company} &middot; {job.location}
-          </div>
-        </div>
-        <div className="job-meta">
-          {job.featured && <span className="badge badge-featured">Featured</span>}
-          <span className="badge">{typeLabel(job.employment_type)}</span>
-          {pay && <span className="pay">{pay}</span>}
-          <span className="posted">{daysAgo(job.published_at)}</span>
-        </div>
-      </button>
-      {open && (
-        <div className="job-detail">
-          <div className="job-facts">{job.category}</div>
-          <p className="job-description">{job.description}</p>
-          <div className="job-detail-actions">
-            <a
-              className="btn btn-primary"
-              href={applyHref}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Apply now
-            </a>
-            <ShareLink jobId={job.id} />
-          </div>
-        </div>
-      )}
-    </article>
-  )
-}
-
-// A deep link to this opening — works from articles, social posts, and the
-// newsletter. Falls back to opening the link when the iframe denies
-// clipboard access.
-function ShareLink({ jobId }) {
-  const [copied, setCopied] = useState(false)
-  const timer = useRef(null)
-  const url = `${window.location.origin}${window.location.pathname}#/job/${jobId}`
-
-  async function copy() {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), 2000)
-    } catch {
-      window.open(url, '_blank', 'noopener')
-    }
-  }
-
-  return (
-    <button className="btn btn-quiet" onClick={copy} type="button">
-      {copied ? 'Link copied' : 'Copy link'}
-    </button>
   )
 }

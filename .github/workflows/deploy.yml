@@ -26,7 +26,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # VITE_PUBLIC_URL (Actions variable, optional): the WordPress page the
+      # board is embedded on. Share links point there instead of raw Pages.
       - run: npm run build
+        env:
+          VITE_PUBLIC_URL: ${{ vars.VITE_PUBLIC_URL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

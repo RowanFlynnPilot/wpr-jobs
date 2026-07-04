@@ -194,6 +194,9 @@ Deno.serve(async (req) => {
       ],
       metadata: { job_id: job.id },
       customer_email: row.contact_email,
+      // Lets the newsroom issue discount codes (launch promos, partners)
+      // from the Stripe dashboard without touching this code.
+      allow_promotion_codes: true,
       success_url: `${env("SITE_URL")}#/success`,
       cancel_url: `${env("SITE_URL")}#/post`,
     });
