@@ -1,0 +1,9 @@
+# Per-function config. submit-job is called from the browser with the anon
+# key (a valid JWT). stripe-webhook is called by Stripe, which authenticates
+# via signature — JWT verification must be off for it.
+
+[functions.submit-job]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
