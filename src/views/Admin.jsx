@@ -106,6 +106,20 @@ function Queue() {
     archive: (jobs ?? []).filter((j) => j.status === 'rejected' || isExpired(j)),
   }
 
+  // The row is the ledger; the email is a courtesy. If notify-employer
+  // fails, the status change stands — surface it so the newsroom can
+  // follow up by hand.
+  async function notifyEmployer(job) {
+    const { error } = await supabase.functions.invoke('notify-employer', {
+      body: { job_id: job.id },
+    })
+    if (error) {
+      setError(
+        `Saved, but the employer email failed — reach ${job.contact_email} manually. (${error.message})`,
+      )
+    }
+  }
+
   async function approve(job) {
     const publishedAt = new Date()
     const expiresAt = new Date(publishedAt.getTime() + POSTING_DAYS * 86400000)
@@ -118,7 +132,10 @@ function Queue() {
       })
       .eq('id', job.id)
     if (error) setError(error.message)
-    else await loadJobs()
+    else {
+      await notifyEmployer(job)
+      await loadJobs()
+    }
   }
 
   async function reject(job, reason) {
@@ -127,7 +144,22 @@ function Queue() {
       .update({ status: 'rejected', rejection_reason: reason })
       .eq('id', job.id)
     if (error) setError(error.message)
-    else await loadJobs()
+    else {
+      await notifyEmployer(job)
+      await loadJobs()
+    }
+  }
+
+  // Newsroom touch-ups before publishing (typos, style). The DB check
+  // constraints still apply — a bad edit fails loudly.
+  async function saveEdit(job, fields) {
+    const { error } = await supabase.from('jobs').update(fields).eq('id', job.id)
+    if (error) {
+      setError(error.message)
+      return false
+    }
+    await loadJobs()
+    return true
   }
 
   async function takeDown(job) {
@@ -189,6 +221,7 @@ function Queue() {
             onApprove={() => approve(job)}
             onReject={(reason) => reject(job, reason)}
             onTakeDown={() => takeDown(job)}
+            onSaveEdit={(fields) => saveEdit(job, fields)}
           />
         ))}
       </div>
@@ -196,13 +229,31 @@ function Queue() {
   )
 }
 
-function AdminCard({ job, expired, onApprove, onReject, onTakeDown }) {
+function AdminCard({ job, expired, onApprove, onReject, onTakeDown, onSaveEdit }) {
   const [rejecting, setRejecting] = useState(false)
   const [reason, setReason] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(null)
   const pay = formatPay(job.pay_min, job.pay_max, job.pay_period)
 
+  function startEdit() {
+    setDraft({
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      description: job.description,
+    })
+    setEditing(true)
+  }
+
+  async function submitEdit() {
+    if (await onSaveEdit(draft)) setEditing(false)
+  }
+
   return (
-    <article className="job-card admin-card open">
+    <article
+      className={`job-card admin-card open${job.featured ? ' featured' : ''}`}
+    >
       <div className="job-summary as-div">
         <div className="job-main">
           <h3 className="job-title">{job.title}</h3>
@@ -211,6 +262,7 @@ function AdminCard({ job, expired, onApprove, onReject, onTakeDown }) {
           </div>
         </div>
         <div className="job-meta">
+          {job.featured && <span className="badge badge-featured">Featured</span>}
           <span className="badge">{typeLabel(job.employment_type)}</span>
           {pay && <span className="pay">{pay}</span>}
           {job.status === 'published' && !expired && (
@@ -226,7 +278,53 @@ function AdminCard({ job, expired, onApprove, onReject, onTakeDown }) {
           {job.category} &middot; submitted {formatDate(job.created_at)}
           {job.paid_at && <> &middot; paid {formatDate(job.paid_at)}</>}
         </div>
-        <p className="job-description">{job.description}</p>
+        {editing ? (
+          <div className="admin-edit">
+            <label>
+              Job title
+              <input
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              />
+            </label>
+            <div className="field-row">
+              <label>
+                Company
+                <input
+                  value={draft.company}
+                  onChange={(e) => setDraft({ ...draft, company: e.target.value })}
+                />
+              </label>
+              <label>
+                Location
+                <input
+                  value={draft.location}
+                  onChange={(e) => setDraft({ ...draft, location: e.target.value })}
+                />
+              </label>
+            </div>
+            <label>
+              Description
+              <textarea
+                rows={8}
+                value={draft.description}
+                onChange={(e) =>
+                  setDraft({ ...draft, description: e.target.value })
+                }
+              />
+            </label>
+            <div className="admin-actions">
+              <button className="btn btn-primary" onClick={submitEdit}>
+                Save changes
+              </button>
+              <button className="btn btn-quiet" onClick={() => setEditing(false)}>
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="job-description">{job.description}</p>
+        )}
         <div className="admin-contact">
           <div>
             <span className="contact-label">Apply via</span>{' '}
@@ -243,13 +341,16 @@ function AdminCard({ job, expired, onApprove, onReject, onTakeDown }) {
           )}
         </div>
 
-        {job.status === 'pending_review' && !rejecting && (
+        {job.status === 'pending_review' && !rejecting && !editing && (
           <div className="admin-actions">
             <button className="btn btn-primary" onClick={onApprove}>
               Approve &amp; publish ({POSTING_DAYS} days)
             </button>
+            <button className="btn btn-quiet" onClick={startEdit}>
+              Edit&hellip;
+            </button>
             <button className="btn btn-quiet" onClick={() => setRejecting(true)}>
-              Reject…
+              Reject&hellip;
             </button>
           </div>
         )}
@@ -258,7 +359,7 @@ function AdminCard({ job, expired, onApprove, onReject, onTakeDown }) {
           <div className="admin-actions admin-reject">
             <input
               autoFocus
-              placeholder="Reason (kept internal, shared with employer if they ask)"
+              placeholder="Reason (emailed to the employer with the rejection notice)"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />

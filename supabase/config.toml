@@ -7,3 +7,15 @@ verify_jwt = true
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+# notify-employer is called from the signed-in admin UI. verify_jwt gets us a
+# valid JWT; the handler additionally resolves it to a real user, so the anon
+# key alone is rejected.
+[functions.notify-employer]
+verify_jwt = true
+
+# jobs-feed is a public RSS/JSON feed (newsletter syndication). It reads with
+# the ANON key, so the board's RLS policy is still the single visibility
+# mechanism.
+[functions.jobs-feed]
+verify_jwt = false

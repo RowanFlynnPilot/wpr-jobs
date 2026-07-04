@@ -5,7 +5,7 @@
 //   Session (job id in metadata) -> return the checkout URL.
 //
 // Secrets required (supabase secrets set ...):
-//   STRIPE_SECRET_KEY, STRIPE_PRICE_ID, SITE_URL
+//   STRIPE_SECRET_KEY, STRIPE_PRICE_ID, STRIPE_FEATURED_PRICE_ID, SITE_URL
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected by the platform.
 //
 // INVARIANT: the taxonomy below mirrors src/lib/taxonomy.js. Change both.
@@ -26,6 +26,7 @@ const CATEGORIES = [
 ];
 const EMPLOYMENT_TYPES = ["full_time", "part_time", "seasonal", "contract"];
 const PAY_PERIODS = ["hour", "year"];
+const TIERS = ["standard", "featured"];
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -80,6 +81,7 @@ function validate(body: Record<string, any>) {
   const pay_min = optionalNumber(body.pay_min);
   const pay_max = optionalNumber(body.pay_max);
   const pay_period = str(body.pay_period) || null;
+  const tier = str(body.tier) || "standard";
 
   if (title.length < 3 || title.length > 120) {
     errors.push("Job title must be 3–120 characters.");
@@ -130,10 +132,14 @@ function validate(body: Record<string, any>) {
   if (pay_period && !PAY_PERIODS.includes(pay_period)) {
     errors.push("Pay period is not one of the allowed values.");
   }
+  if (!TIERS.includes(tier)) {
+    errors.push("Tier is not one of the allowed values.");
+  }
 
   return {
     errors,
     row: {
+      featured: tier === "featured",
       title,
       company,
       location,
@@ -178,7 +184,14 @@ Deno.serve(async (req) => {
   try {
     session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: env("STRIPE_PRICE_ID"), quantity: 1 }],
+      line_items: [
+        {
+          price: row.featured
+            ? env("STRIPE_FEATURED_PRICE_ID")
+            : env("STRIPE_PRICE_ID"),
+          quantity: 1,
+        },
+      ],
       metadata: { job_id: job.id },
       customer_email: row.contact_email,
       success_url: `${env("SITE_URL")}#/success`,

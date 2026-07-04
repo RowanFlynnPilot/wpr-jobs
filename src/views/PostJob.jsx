@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { supabase } from '../supabase.js'
-import { PRICE_LABEL, POSTING_DAYS } from '../config.js'
+import { PRICE_LABEL, FEATURED_PRICE_LABEL, POSTING_DAYS } from '../config.js'
 import { CATEGORIES, EMPLOYMENT_TYPES } from '../lib/taxonomy.js'
 
 const BLANK = {
+  tier: 'standard',
   company: '',
   title: '',
   location: 'Wausau, WI',
@@ -39,6 +40,7 @@ export default function PostJob() {
     }
 
     const payload = {
+      tier: form.tier,
       company: form.company,
       title: form.title,
       location: form.location,
@@ -88,14 +90,46 @@ export default function PostJob() {
         </div>
         <h1>Reach Marathon County&rsquo;s workforce</h1>
         <p className="lede">
-          {PRICE_LABEL} for a {POSTING_DAYS}-day posting. Our newsroom reviews
-          every submission before it goes live &mdash; usually within one
-          business day.
+          {PRICE_LABEL} for a {POSTING_DAYS}-day posting, or{' '}
+          {FEATURED_PRICE_LABEL} to feature it at the top of the board. Our
+          newsroom reviews every submission before it goes live &mdash;
+          usually within one business day.
         </p>
       </header>
 
       <form className="job-form" onSubmit={onSubmit}>
         <fieldset disabled={submitting}>
+          <div className="field-group">
+            <div className="field-group-label">Posting tier</div>
+            <label className="radio tier-option">
+              <input
+                type="radio"
+                name="tier"
+                value="standard"
+                checked={form.tier === 'standard'}
+                onChange={set('tier')}
+              />
+              <span>
+                <strong>Standard &mdash; {PRICE_LABEL}.</strong>{' '}
+                {POSTING_DAYS} days on the board, newest first.
+              </span>
+            </label>
+            <label className="radio tier-option">
+              <input
+                type="radio"
+                name="tier"
+                value="featured"
+                checked={form.tier === 'featured'}
+                onChange={set('tier')}
+              />
+              <span>
+                <strong>Featured &mdash; {FEATURED_PRICE_LABEL}.</strong>{' '}
+                Front and center at the top of the board for the full{' '}
+                {POSTING_DAYS} days, with the standout treatment.
+              </span>
+            </label>
+          </div>
+
           <label>
             Company name
             <input required minLength={2} maxLength={120} value={form.company} onChange={set('company')} />
@@ -235,8 +269,10 @@ export default function PostJob() {
 
           {error && <div className="notice notice-error">{error}</div>}
 
-          <button className="btn btn-primary btn-submit" type="submit">
-            {submitting ? 'Starting checkout…' : `Continue to payment — ${PRICE_LABEL}`}
+          <button className="btn btn-cta btn-submit" type="submit">
+            {submitting
+              ? 'Starting checkout…'
+              : `Continue to payment — ${form.tier === 'featured' ? FEATURED_PRICE_LABEL : PRICE_LABEL}`}
           </button>
           <p className="fine-print">
             Payment is handled by Stripe. Your posting goes to our editors the

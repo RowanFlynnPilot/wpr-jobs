@@ -4,7 +4,9 @@ import PostJob from './views/PostJob.jsx'
 import Success from './views/Success.jsx'
 import Admin from './views/Admin.jsx'
 
-// Hash routing: four views, GitHub Pages friendly, zero dependencies.
+// Hash routing: GitHub Pages friendly, zero dependencies.
+// #/job/:id deep-links a single opening — it renders the Board with that
+// card open and scrolled into view.
 function useHashRoute() {
   const [hash, setHash] = useState(window.location.hash || '#/')
   useEffect(() => {
@@ -20,5 +22,8 @@ export default function App() {
   if (route.startsWith('#/post')) return <PostJob />
   if (route.startsWith('#/success')) return <Success />
   if (route.startsWith('#/admin')) return <Admin />
+  if (route.startsWith('#/job/')) {
+    return <Board jobId={route.slice('#/job/'.length)} />
+  }
   return <Board />
 }

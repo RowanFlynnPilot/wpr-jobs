@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../supabase.js'
 import { PRICE_LABEL, POSTING_DAYS } from '../config.js'
 import { CATEGORIES, EMPLOYMENT_TYPES, typeLabel } from '../lib/taxonomy.js'
@@ -11,26 +11,37 @@ import { formatPay, daysAgo } from '../lib/format.js'
 const PUBLIC_COLUMNS =
   'id,title,company,location,employment_type,category,' +
   'pay_min,pay_max,pay_period,description,apply_url,apply_email,' +
-  'published_at,expires_at'
+  'published_at,expires_at,featured'
 
-export default function Board() {
+export default function Board({ jobId = null }) {
   const [jobs, setJobs] = useState(null)
   const [error, setError] = useState(null)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('all')
   const [type, setType] = useState('all')
-  const [openId, setOpenId] = useState(null)
+  const [openId, setOpenId] = useState(jobId)
 
   useEffect(() => {
     supabase
       .from('jobs')
       .select(PUBLIC_COLUMNS)
+      .order('featured', { ascending: false })
       .order('published_at', { ascending: false })
       .then(({ data, error }) => {
         if (error) setError(error.message)
         else setJobs(data)
       })
   }, [])
+
+  // Deep link (#/job/:id): once the board has loaded, bring the linked
+  // card into view.
+  useEffect(() => {
+    if (jobId && jobs) {
+      document
+        .getElementById(`job-${jobId}`)
+        ?.scrollIntoView({ block: 'start' })
+    }
+  }, [jobId, jobs])
 
   const filtered = useMemo(() => {
     if (!jobs) return []
@@ -50,6 +61,14 @@ export default function Board() {
   return (
     <div className="page">
       <header className="board-header">
+        <img
+          className="board-mark"
+          src="./wpr-typewriter.png"
+          alt="Wausau Pilot & Review"
+          width={76}
+          height={76}
+          decoding="async"
+        />
         <div className="eyebrow">
           <span className="eyebrow-rule" />
           <span>Help wanted &middot; Wausau Pilot &amp; Review</span>
@@ -60,7 +79,7 @@ export default function Board() {
           Local openings from local employers. Every posting is reviewed by our
           newsroom and runs for {POSTING_DAYS} days.
         </p>
-        <a className="btn btn-primary" href="#/post">
+        <a className="btn btn-cta" href="#/post">
           Post a job &mdash; {PRICE_LABEL}
         </a>
       </header>
@@ -138,15 +157,43 @@ export default function Board() {
       )}
 
       <footer className="board-footer">
-        A community job board from{' '}
-        <a
-          href="https://wausaupilotandreview.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Wausau Pilot &amp; Review
-        </a>
-        , your nonprofit local newsroom.
+        <p>
+          A community job board from{' '}
+          <a
+            href="https://wausaupilotandreview.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Wausau Pilot &amp; Review
+          </a>
+          , your nonprofit local newsroom.
+        </p>
+        <p className="footer-family">
+          More from WPR:{' '}
+          <a
+            href="https://wausaupilotandreview.com/community-board"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            The Community Board
+          </a>{' '}
+          &middot;{' '}
+          <a
+            href="https://wausaupilotandreview.com/obituaries"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Obituaries
+          </a>{' '}
+          &middot;{' '}
+          <a
+            href="https://wausaupilotandreview.com/events"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Events
+          </a>
+        </p>
       </footer>
     </div>
   )
@@ -161,7 +208,10 @@ function JobCard({ job, open, onToggle }) {
       )}`
 
   return (
-    <article className={`job-card${open ? ' open' : ''}`}>
+    <article
+      id={`job-${job.id}`}
+      className={`job-card${open ? ' open' : ''}${job.featured ? ' featured' : ''}`}
+    >
       <button className="job-summary" onClick={onToggle} aria-expanded={open}>
         <div className="job-main">
           <h3 className="job-title">{job.title}</h3>
@@ -170,6 +220,7 @@ function JobCard({ job, open, onToggle }) {
           </div>
         </div>
         <div className="job-meta">
+          {job.featured && <span className="badge badge-featured">Featured</span>}
           <span className="badge">{typeLabel(job.employment_type)}</span>
           {pay && <span className="pay">{pay}</span>}
           <span className="posted">{daysAgo(job.published_at)}</span>
@@ -179,16 +230,45 @@ function JobCard({ job, open, onToggle }) {
         <div className="job-detail">
           <div className="job-facts">{job.category}</div>
           <p className="job-description">{job.description}</p>
-          <a
-            className="btn btn-primary"
-            href={applyHref}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Apply now
-          </a>
+          <div className="job-detail-actions">
+            <a
+              className="btn btn-primary"
+              href={applyHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Apply now
+            </a>
+            <ShareLink jobId={job.id} />
+          </div>
         </div>
       )}
     </article>
+  )
+}
+
+// A deep link to this opening — works from articles, social posts, and the
+// newsletter. Falls back to opening the link when the iframe denies
+// clipboard access.
+function ShareLink({ jobId }) {
+  const [copied, setCopied] = useState(false)
+  const timer = useRef(null)
+  const url = `${window.location.origin}${window.location.pathname}#/job/${jobId}`
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      clearTimeout(timer.current)
+      timer.current = setTimeout(() => setCopied(false), 2000)
+    } catch {
+      window.open(url, '_blank', 'noopener')
+    }
+  }
+
+  return (
+    <button className="btn btn-quiet" onClick={copy} type="button">
+      {copied ? 'Link copied' : 'Copy link'}
+    </button>
   )
 }

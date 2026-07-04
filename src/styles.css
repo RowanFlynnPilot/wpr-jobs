@@ -1,13 +1,19 @@
-/* wpr-jobs · WPR design system
-   teal #3A867C · cream #f6f2e9 · Fraunces display · Public Sans body ·
-   JetBrains Mono for data. Signature element: the classified-ad "Help
-   wanted" eyebrow — a nod to the newspaper classifieds this board descends
-   from. Everything else stays quiet. */
+/* wpr-jobs · WPR house style
+   Type and color come from wausaupilotandreview.com and its typewriter
+   logo, matching wpr-obituaries and wpr-community-board: Oswald (the
+   condensed nameplate face), Merriweather (the reading serif), Courier
+   Prime (the typewriter voice — datelines, badges, pay). Teal #3a867c is
+   sampled from the typewriter itself; red #dd3333 is the site CTA color.
+   Signature element: the classified-ad "Help wanted" eyebrow — a nod to
+   the newspaper classifieds this board descends from. Everything else
+   stays quiet. */
 
 :root {
   --teal: #3a867c;
   --teal-dark: #2e6b63;
   --teal-tint: #e4efec;
+  --red: #dd3333;
+  --red-dark: #b82a2a;
   --cream: #f6f2e9;
   --paper: #fffdf8;
   --ink: #22302d;
@@ -15,9 +21,9 @@
   --rule: #d9d2c3;
   --danger: #a4442f;
   --radius: 6px;
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'Public Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-display: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Merriweather', Georgia, serif;
+  --font-mono: 'Courier Prime', 'Courier New', monospace;
 }
 
 * {
@@ -29,8 +35,8 @@ body {
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 16px;
-  line-height: 1.55;
+  font-size: 15.5px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -46,11 +52,11 @@ body {
 
 h1 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   font-size: clamp(1.9rem, 4.5vw, 2.6rem);
   line-height: 1.12;
   margin: 0 0 12px;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
 }
 
 h3 {
@@ -68,9 +74,9 @@ a {
   justify-content: center;
   gap: 14px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
+  font-size: 0.76rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--teal-dark);
   margin-bottom: 16px;
@@ -96,6 +102,14 @@ a {
   margin-bottom: 26px;
 }
 
+/* The typewriter seal — the WPR mark this whole palette is sampled from. */
+.board-mark {
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
+}
+
 .lede {
   color: var(--ink-soft);
   max-width: 52ch;
@@ -114,9 +128,10 @@ a {
 /* ---- Buttons ---- */
 .btn {
   display: inline-block;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.98rem;
+  letter-spacing: 0.04em;
   padding: 11px 22px;
   border-radius: var(--radius);
   border: 1px solid transparent;
@@ -132,6 +147,16 @@ a {
 
 .btn-primary:hover {
   background: var(--teal-dark);
+}
+
+/* Site CTA red (#dd3333) — reserved for the one revenue action: Post a job. */
+.btn-cta {
+  background: var(--red);
+  color: var(--paper);
+}
+
+.btn-cta:hover {
+  background: var(--red-dark);
 }
 
 .btn-quiet {
@@ -203,7 +228,7 @@ textarea:focus {
 
 .count-line {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -229,6 +254,25 @@ textarea:focus {
   border-left-color: var(--teal);
 }
 
+/* Featured tier: front and center. Full red frame, warm paper, a touch of
+   lift — unmistakably the top of the board, still a classified ad. Stays
+   red even while open. */
+.job-card.featured {
+  border-color: var(--red);
+  border-left: 3px solid var(--red);
+  background: #fffaf5;
+  box-shadow: 0 2px 10px rgba(184, 42, 42, 0.08);
+}
+
+.job-card.featured .job-title {
+  font-size: 1.32rem;
+}
+
+.badge-featured {
+  color: var(--paper);
+  background: var(--red);
+}
+
 .job-summary {
   display: flex;
   justify-content: space-between;
@@ -250,9 +294,10 @@ textarea:focus {
 
 .job-title {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.15rem;
+  font-weight: 500;
+  font-size: 1.22rem;
   line-height: 1.25;
+  letter-spacing: 0.01em;
 }
 
 .job-company {
@@ -271,7 +316,7 @@ textarea:focus {
 
 .badge {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--teal-dark);
@@ -283,8 +328,8 @@ textarea:focus {
 
 .pay {
   font-family: var(--font-mono);
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.86rem;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -301,7 +346,7 @@ textarea:focus {
 
 .job-facts {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -311,6 +356,13 @@ textarea:focus {
 .job-description {
   white-space: pre-wrap;
   margin: 12px 0 18px;
+}
+
+.job-detail-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 /* ---- Notices ---- */
@@ -339,6 +391,16 @@ textarea:focus {
   text-align: center;
 }
 
+.board-footer p {
+  margin: 0 0 6px;
+}
+
+.footer-family {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+
 /* ---- Form ---- */
 .back-link {
   display: inline-block;
@@ -364,7 +426,7 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.88rem;
 }
 
@@ -392,7 +454,7 @@ textarea:focus {
 }
 
 .field-group-label {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.88rem;
 }
 
@@ -416,6 +478,18 @@ textarea:focus {
 .radio input {
   width: auto;
   accent-color: var(--teal);
+}
+
+/* Tier picker: multi-line radio labels, top-aligned to the control. */
+.tier-option {
+  align-items: flex-start !important;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.tier-option input {
+  margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .btn-submit {
@@ -457,9 +531,10 @@ textarea:focus {
 }
 
 .tab {
-  font: inherit;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  font-size: 0.95rem;
   color: var(--ink-soft);
   background: none;
   border: none;
@@ -505,6 +580,22 @@ textarea:focus {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+/* Inline newsroom edit, pending queue only */
+.admin-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 12px 0 18px;
+}
+
+.admin-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 0.82rem;
 }
 
 .admin-reject input {
