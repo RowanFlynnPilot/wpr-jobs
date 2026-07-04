@@ -30,9 +30,16 @@
   box-sizing: border-box;
 }
 
+/* Newsprint: warm paper with a barely-there halftone dot — same treatment
+   as wpr-community-board. */
 body {
   margin: 0;
-  background: var(--cream);
+  background-color: var(--cream);
+  background-image: radial-gradient(
+    rgba(34, 48, 45, 0.045) 0.5px,
+    transparent 0.6px
+  );
+  background-size: 8px 8px;
   color: var(--ink);
   font-family: var(--font-body);
   font-size: 15.5px;
@@ -117,8 +124,8 @@ a {
 /* The typewriter seal — the WPR mark this whole palette is sampled from. */
 .board-mark {
   display: block;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 96px;
   margin: 0 auto 14px;
 }
 

@@ -87,8 +87,8 @@ export default function Board({ jobId = null }) {
           className="board-mark"
           src="./wpr-typewriter.png"
           alt="Wausau Pilot & Review"
-          width={76}
-          height={76}
+          width={96}
+          height={96}
           decoding="async"
         />
         <div className="eyebrow">
