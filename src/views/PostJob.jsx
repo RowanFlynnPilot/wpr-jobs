@@ -6,6 +6,7 @@ import JobCard from '../components/JobCard.jsx'
 
 const BLANK = {
   tier: 'standard',
+  website: '', // honeypot — humans never see it, bots fill it
   company: '',
   title: '',
   location: 'Wausau, WI',
@@ -42,6 +43,7 @@ export default function PostJob() {
 
     const payload = {
       tier: form.tier,
+      website: form.website,
       company: form.company,
       title: form.title,
       location: form.location,
@@ -100,6 +102,19 @@ export default function PostJob() {
 
       <form className="job-form" onSubmit={onSubmit}>
         <fieldset disabled={submitting}>
+          {/* Honeypot: visually hidden, skipped by keyboard and screen
+              readers. submit-job rejects any submission that fills it. */}
+          <label className="hp-field" aria-hidden="true">
+            Website
+            <input
+              type="text"
+              tabIndex={-1}
+              autoComplete="off"
+              value={form.website}
+              onChange={set('website')}
+            />
+          </label>
+
           <div className="field-group">
             <div className="field-group-label">Posting tier</div>
             <label className="radio tier-option">

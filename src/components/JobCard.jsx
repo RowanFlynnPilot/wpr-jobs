@@ -12,8 +12,14 @@ const PUBLIC_URL =
 
 // One card, two homes: the public board, and the live "how it will appear"
 // preview on the submission form (preview renders open, inert, no share).
+const NEW_DAYS = 3
+
 export default function JobCard({ job, open, onToggle, preview = false }) {
   const pay = formatPay(job.pay_min, job.pay_max, job.pay_period)
+  const isNew =
+    !preview &&
+    job.published_at &&
+    Date.now() - new Date(job.published_at).getTime() < NEW_DAYS * 86400000
   const applyHref = job.apply_url
     ? job.apply_url
     : `mailto:${job.apply_email}?subject=${encodeURIComponent(
@@ -30,6 +36,7 @@ export default function JobCard({ job, open, onToggle, preview = false }) {
       </div>
       <div className="job-meta">
         {job.featured && <span className="badge badge-featured">Featured</span>}
+        {isNew && <span className="badge badge-new">New</span>}
         <span className="badge">{typeLabel(job.employment_type)}</span>
         {pay && <span className="pay">{pay}</span>}
         <span className="posted">{daysAgo(job.published_at)}</span>

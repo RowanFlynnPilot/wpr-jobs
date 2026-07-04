@@ -106,6 +106,22 @@ function Queue() {
     archive: (jobs ?? []).filter((j) => j.status === 'rejected' || isExpired(j)),
   }
 
+  // Ops at a glance. "Awaiting payment" rows are abandoned checkouts —
+  // invisible everywhere else by design, but worth a count here.
+  const awaitingPayment = (jobs ?? []).filter(
+    (j) => j.status === 'pending_payment',
+  ).length
+  const thisMonth = new Date()
+  const paidThisMonth = (jobs ?? []).filter((j) => {
+    if (!j.paid_at) return false
+    const d = new Date(j.paid_at)
+    return (
+      d.getMonth() === thisMonth.getMonth() &&
+      d.getFullYear() === thisMonth.getFullYear()
+    )
+  })
+  const featuredThisMonth = paidThisMonth.filter((j) => j.featured).length
+
   // The row is the ledger; the email is a courtesy. If notify-employer
   // fails, the status change stands — surface it so the newsroom can
   // follow up by hand.
@@ -180,6 +196,14 @@ function Queue() {
             <span>Now Hiring &middot; admin</span>
           </div>
           <h1>Review queue</h1>
+          {jobs !== null && (
+            <div className="ops-line">
+              {buckets.live.length} live &middot; {buckets.pending.length} in
+              review &middot; {awaitingPayment} awaiting payment &middot;{' '}
+              {paidThisMonth.length} paid this month
+              {featuredThisMonth > 0 && <> ({featuredThisMonth} featured)</>}
+            </div>
+          )}
         </div>
         <button className="btn btn-quiet" onClick={() => supabase.auth.signOut()}>
           Sign out

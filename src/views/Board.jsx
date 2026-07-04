@@ -66,6 +66,20 @@ export default function Board({ jobId = null }) {
     setType('all')
   }
 
+  // Newsletter clicks outlive 30-day runs: a deep link to a posting that
+  // has expired (or never existed) gets a gentle explanation, not a
+  // silently unremarkable board.
+  const linkedGone =
+    jobId !== null && jobs !== null && !jobs.some((j) => j.id === jobId)
+
+  const categoryCounts = useMemo(() => {
+    const counts = {}
+    for (const job of jobs ?? []) {
+      counts[job.category] = (counts[job.category] ?? 0) + 1
+    }
+    return counts
+  }, [jobs])
+
   return (
     <div className="page">
       <header className="board-header">
@@ -109,7 +123,7 @@ export default function Board({ jobId = null }) {
           <option value="all">All categories</option>
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
-              {c}
+              {categoryCounts[c] ? `${c} (${categoryCounts[c]})` : c}
             </option>
           ))}
         </select>
@@ -133,6 +147,13 @@ export default function Board({ jobId = null }) {
         </div>
       )}
 
+      {linkedGone && !error && (
+        <div className="notice">
+          That posting is no longer on the board &mdash; postings run for{' '}
+          {POSTING_DAYS} days. Here&rsquo;s who&rsquo;s hiring now.
+        </div>
+      )}
+
       {!error && jobs === null && (
         <div className="notice notice-loading">
           Setting type<span className="cursor" aria-hidden="true" />
@@ -141,7 +162,7 @@ export default function Board({ jobId = null }) {
 
       {jobs !== null && !error && (
         <>
-          <div className="count-line">
+          <div className="count-line" aria-live="polite">
             {filtered.length === 1
               ? '1 open position'
               : `${filtered.length} open positions`}

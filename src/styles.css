@@ -279,6 +279,11 @@ textarea:focus {
   background: var(--red);
 }
 
+.badge.badge-new {
+  color: var(--paper);
+  background: var(--teal);
+}
+
 .job-summary {
   display: flex;
   justify-content: space-between;
@@ -454,6 +459,15 @@ textarea:focus {
   text-decoration: underline;
 }
 
+/* Honeypot: off-canvas, not display:none — some bots skip hidden fields. */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .job-form fieldset {
   border: none;
   padding: 0;
@@ -600,6 +614,15 @@ textarea:focus {
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
+}
+
+.ops-line {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-top: 6px;
 }
 
 .tabs {

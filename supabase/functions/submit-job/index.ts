@@ -168,6 +168,13 @@ Deno.serve(async (req) => {
     return json({ error: "Request body must be JSON." }, 400);
   }
 
+  // Honeypot: the form ships a visually hidden "website" field no human
+  // ever fills. A value here means a bot — refuse before touching the DB
+  // or Stripe.
+  if (str(body.website)) {
+    return json({ error: "Submission rejected." }, 400);
+  }
+
   const { errors, row } = validate(body);
   if (errors.length > 0) return json({ error: errors.join(" ") }, 400);
 

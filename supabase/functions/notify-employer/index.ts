@@ -89,9 +89,11 @@ Deno.serve(async (req) => {
         `Hi ${job.contact_name},\n\n` +
         `"${job.title}" at ${job.company} is now live on Now Hiring in ` +
         `Marathon County and runs through ${formatDate(job.expires_at)}.\n\n` +
-        `See it on the board: ${boardUrl}\n\n` +
-        `When the run ends, you can repost the position any time with a ` +
-        `fresh submission. Thanks for hiring local.` +
+        `Your posting: ${boardUrl}#/job/${job.id}\n` +
+        `The board: ${boardUrl}\n\n` +
+        `That first link is yours to share — your careers page, social ` +
+        `media, anywhere. When the run ends, you can repost the position ` +
+        `any time with a fresh submission. Thanks for hiring local.` +
         SIGNATURE,
     });
     return json({ sent: "approved" });
@@ -106,7 +108,8 @@ Deno.serve(async (req) => {
         `We weren't able to publish "${job.title}" at ${job.company}.\n\n` +
         `From our editors: ${job.rejection_reason ?? "(no reason recorded)"}\n\n` +
         `Reply to this email and we'll sort out a revised posting or a ` +
-        `refund.` +
+        `refund. You can submit a revised posting any time: ` +
+        `${boardUrl}#/post` +
         SIGNATURE,
     });
     return json({ sent: "rejected" });
