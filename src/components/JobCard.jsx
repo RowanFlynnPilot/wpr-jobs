@@ -33,11 +33,15 @@ export default function JobCard({ job, open, onToggle, preview = false }) {
         <div className="job-company">
           {job.company} &middot; {job.location}
         </div>
+        <div className="job-badges">
+          {job.featured && (
+            <span className="badge badge-featured">Featured</span>
+          )}
+          {isNew && <span className="badge badge-new">New</span>}
+          <span className="badge">{typeLabel(job.employment_type)}</span>
+        </div>
       </div>
       <div className="job-meta">
-        {job.featured && <span className="badge badge-featured">Featured</span>}
-        {isNew && <span className="badge badge-new">New</span>}
-        <span className="badge">{typeLabel(job.employment_type)}</span>
         {pay && <span className="pay">{pay}</span>}
         <span className="posted">{daysAgo(job.published_at)}</span>
       </div>
@@ -61,7 +65,10 @@ export default function JobCard({ job, open, onToggle, preview = false }) {
       )}
       {open && (
         <div className="job-detail">
-          <div className="job-facts">{job.category}</div>
+          <div className="job-facts">
+            {job.category} &middot; {typeLabel(job.employment_type)} &middot;{' '}
+            {job.location}
+          </div>
           <p className="job-description">{job.description}</p>
           <div className="job-detail-actions">
             {preview ? (

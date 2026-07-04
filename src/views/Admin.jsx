@@ -284,10 +284,14 @@ function AdminCard({ job, expired, onApprove, onReject, onTakeDown, onSaveEdit }
           <div className="job-company">
             {job.company} &middot; {job.location}
           </div>
+          <div className="job-badges">
+            {job.featured && (
+              <span className="badge badge-featured">Featured</span>
+            )}
+            <span className="badge">{typeLabel(job.employment_type)}</span>
+          </div>
         </div>
         <div className="job-meta">
-          {job.featured && <span className="badge badge-featured">Featured</span>}
-          <span className="badge">{typeLabel(job.employment_type)}</span>
           {pay && <span className="pay">{pay}</span>}
           {job.status === 'published' && !expired && (
             <span className="posted">{daysLeft(job.expires_at)} days left</span>

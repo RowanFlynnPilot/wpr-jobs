@@ -95,11 +95,23 @@ a {
 }
 
 /* ---- Board header ---- */
+/* Masthead rule: thick over thin, the classic newspaper divider. */
 .board-header {
   text-align: center;
   padding: 12px 0 30px;
   border-bottom: 2px solid var(--ink);
-  margin-bottom: 26px;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.board-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 1px;
+  background: var(--ink);
 }
 
 /* The typewriter seal — the WPR mark this whole palette is sampled from. */
@@ -253,6 +265,16 @@ textarea:focus {
   border-left: 3px solid transparent;
   border-radius: var(--radius);
   overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.job-card:not(.featured):hover {
+  border-color: var(--ink-soft);
+  box-shadow: 0 1px 6px rgba(34, 48, 45, 0.07);
+}
+
+.job-card.featured:hover {
+  box-shadow: 0 2px 12px rgba(184, 42, 42, 0.14);
 }
 
 .job-card.open {
@@ -287,7 +309,7 @@ textarea:focus {
 .job-summary {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 16px;
   width: 100%;
   padding: 16px 18px;
@@ -317,12 +339,20 @@ textarea:focus {
   margin-top: 2px;
 }
 
+.job-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 9px;
+}
+
 .job-meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 5px;
   flex-shrink: 0;
+  padding-top: 3px;
 }
 
 .badge {
@@ -339,7 +369,7 @@ textarea:focus {
 
 .pay {
   font-family: var(--font-mono);
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
 }
